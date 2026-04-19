@@ -1,0 +1,259 @@
+@startuml ELearning_Database_ERD
+title ELearnVN — Quan hệ CSDL MySQL (schema elearning)\ninit.sql + bảng ORM notifications, wishlists (create_all)
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 8
+skinparam linetype ortho
+
+erDiagram
+    users ||--o{ products : author
+    users ||--o{ reviews : writes
+    users ||--|| carts : owns
+    users ||--o{ orders : places
+    users ||--o{ user_access : granted
+    users ||--o{ learning_progress : tracks
+    users ||--o{ blog_posts : writes_post
+    users ||--o{ blog_comments : writes_cmt
+    users ||--o{ notifications : receives
+    users ||--o{ wishlists : saves
+
+    categories ||--o{ products : contains
+
+    products ||--o| courses : extends_course
+    products ||--o| ebooks : extends_ebook
+    products ||--o{ reviews : reviewed
+    products ||--o{ cart_items : in_cart
+    products ||--o{ order_items : in_order
+    products ||--o{ user_access : unlocks
+    products ||--o{ wishlists : wished
+
+    courses ||--o{ modules : contains_mod
+    modules ||--o{ lessons : contains_lesson
+    lessons ||--o{ learning_progress : progress_on
+
+    coupons ||--o{ orders : applied
+
+    orders ||--|{ order_items : line_items
+    orders ||--|| payments : settles
+    orders ||--o{ user_access : source_order
+
+    carts ||--o{ cart_items : items
+
+    blog_posts ||--o{ blog_comments : comments
+
+    users {
+        int user_id PK
+        string email
+        string password_hash
+        string name
+        string phone
+        string role
+        string status
+        string author_application_status
+        string avatar_url
+        string oauth_provider
+        string oauth_id
+        datetime created_at
+        datetime updated_at
+    }
+
+    categories {
+        int category_id PK
+        string name
+        string description
+        string icon
+        int sort_order
+    }
+
+    products {
+        int product_id PK
+        int category_id FK
+        string name
+        decimal price
+        decimal original_price
+        string description
+        string short_description
+        string thumbnail_url
+        string status
+        string product_type
+        int author_id FK
+        int total_enrolled
+        decimal average_rating
+        int review_count
+        string rejection_reason
+        datetime created_at
+        datetime updated_at
+    }
+
+    ebooks {
+        int product_id PK
+        decimal file_size
+        string format
+        int page_count
+        string mux_asset_id
+        string file_key
+        int preview_pages
+    }
+
+    courses {
+        int product_id PK
+        int duration
+        string level
+        int total_lessons
+        string requirements
+        string what_you_learn
+    }
+
+    modules {
+        int module_id PK
+        int course_id FK
+        string title
+        int sort_order
+    }
+
+    lessons {
+        int lesson_id PK
+        int module_id FK
+        string title
+        string mux_asset_id
+        string mux_playback_id
+        int duration
+        int sort_order
+        boolean is_preview
+    }
+
+    reviews {
+        int review_id PK
+        int product_id FK
+        int user_id FK
+        int rating
+        string comment
+        datetime created_at
+    }
+
+    carts {
+        int cart_id PK
+        int user_id FK
+        datetime created_at
+    }
+
+    cart_items {
+        int cart_item_id PK
+        int cart_id FK
+        int product_id FK
+        int quantity
+        decimal price
+    }
+
+    coupons {
+        string code PK
+        decimal discount
+        string discount_type
+        decimal min_order_amount
+        datetime expired_date
+        int usage_limit
+        int used_count
+        boolean is_active
+    }
+
+    orders {
+        int order_id PK
+        int user_id FK
+        string coupon_code FK
+        decimal subtotal
+        decimal discount_amount
+        decimal total_amount
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    order_items {
+        int order_item_id PK
+        int order_id FK
+        int product_id FK
+        int quantity
+        decimal price
+    }
+
+    payments {
+        int payment_id PK
+        int order_id FK
+        string method
+        string status
+        string transaction_id
+        string vnpay_txn_ref
+        datetime paid_at
+        decimal amount
+        string vnpay_response_json
+    }
+
+    user_access {
+        int access_id PK
+        int user_id FK
+        int product_id FK
+        int order_id FK
+        datetime granted_at
+        datetime accessed_at
+        datetime revoked_at
+        boolean is_active
+    }
+
+    learning_progress {
+        int progress_id PK
+        int user_id FK
+        int lesson_id FK
+        boolean completed
+        int watched_seconds
+        datetime completed_at
+        datetime updated_at
+    }
+
+    blog_posts {
+        int post_id PK
+        int user_id FK
+        string title
+        string content
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    blog_comments {
+        int comment_id PK
+        int post_id FK
+        int user_id FK
+        string content
+        string status
+        datetime created_at
+    }
+
+    notifications {
+        int notification_id PK
+        int user_id FK
+        string type
+        string title
+        string message
+        string link
+        boolean is_read
+        datetime created_at
+    }
+
+    wishlists {
+        int wishlist_id PK
+        int user_id FK
+        int product_id FK
+        datetime added_at
+    }
+
+note right of products
+  products + courses | ebooks
+  cùng product_id (1:1 mở rộng)
+end note
+
+note bottom of user_access
+  Sau thanh toán paid:
+  cấp quyền theo từng product
+end note
+
+@enduml

@@ -1,0 +1,207 @@
+@startuml BTL_Hai_Chuc_Nang_CSDL
+title BTL — 2 chức năng cốt lõi (chỉ các bảng liên quan)\nNguồn: database/init.sql + database/alter.sql
+
+skinparam backgroundColor #FEFEFE
+skinparam roundcorner 8
+skinparam linetype ortho
+
+' alter.sql: users.author_application_data; products.rejection_reason (đồng bộ init);
+'            user_access.accessed_at (bổ sung DB cũ; init.sql đã có cột này cho cài mới)
+
+erDiagram
+    users ||--o{ products : author_id
+    categories ||--o{ products : category_id
+
+    products ||--o| courses : "product_id (course)"
+    products ||--o| ebooks : "product_id (ebook)"
+    courses ||--o{ modules : course_id
+    modules ||--o{ lessons : module_id
+
+    users ||--|| carts : user_id
+    carts ||--o{ cart_items : cart_id
+    products ||--o{ cart_items : product_id
+
+    users ||--o{ orders : user_id
+    coupons ||--o{ orders : coupon_code
+    orders ||--|{ order_items : order_id
+    products ||--o{ order_items : product_id
+    orders ||--|| payments : order_id
+    orders ||--o{ user_access : order_id
+    users ||--o{ user_access : user_id
+    products ||--o{ user_access : product_id
+
+    users ||--o{ learning_progress : user_id
+    lessons ||--o{ learning_progress : lesson_id
+
+    users {
+        int user_id PK
+        string email
+        string password_hash
+        string name
+        string phone
+        string role
+        string status
+        string author_application_status
+        string author_application_data "alter.sql"
+        string avatar_url
+        string oauth_provider
+        string oauth_id
+        datetime created_at
+        datetime updated_at
+    }
+
+    categories {
+        int category_id PK
+        string name
+        string description
+        string icon
+        int sort_order
+    }
+
+    products {
+        int product_id PK
+        int category_id FK
+        string name
+        decimal price
+        decimal original_price
+        string description
+        string short_description
+        string thumbnail_url
+        string status
+        string product_type
+        int author_id FK
+        int total_enrolled
+        decimal average_rating
+        int review_count
+        string rejection_reason "init + alter.sql"
+        datetime created_at
+        datetime updated_at
+    }
+
+    courses {
+        int product_id PK
+        int duration
+        string level
+        int total_lessons
+        string requirements
+        string what_you_learn
+    }
+
+    ebooks {
+        int product_id PK
+        decimal file_size
+        string format
+        int page_count
+        string mux_asset_id
+        string file_key
+        int preview_pages
+    }
+
+    modules {
+        int module_id PK
+        int course_id FK
+        string title
+        int sort_order
+    }
+
+    lessons {
+        int lesson_id PK
+        int module_id FK
+        string title
+        string mux_asset_id
+        string mux_playback_id
+        int duration
+        int sort_order
+        boolean is_preview
+    }
+
+    carts {
+        int cart_id PK
+        int user_id FK
+        datetime created_at
+    }
+
+    cart_items {
+        int cart_item_id PK
+        int cart_id FK
+        int product_id FK
+        int quantity
+        decimal price
+    }
+
+    coupons {
+        string code PK
+        decimal discount
+        string discount_type
+        decimal min_order_amount
+        datetime expired_date
+        int usage_limit
+        int used_count
+        boolean is_active
+    }
+
+    orders {
+        int order_id PK
+        int user_id FK
+        string coupon_code FK
+        decimal subtotal
+        decimal discount_amount
+        decimal total_amount
+        string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    order_items {
+        int order_item_id PK
+        int order_id FK
+        int product_id FK
+        int quantity
+        decimal price
+    }
+
+    payments {
+        int payment_id PK
+        int order_id FK
+        string method
+        string status
+        string transaction_id
+        string vnpay_txn_ref
+        datetime paid_at
+        decimal amount
+        string vnpay_response
+    }
+
+    user_access {
+        int access_id PK
+        int user_id FK
+        int product_id FK
+        int order_id FK
+        datetime granted_at
+        datetime accessed_at "alter.sql + init"
+        datetime revoked_at
+        boolean is_active
+    }
+
+    learning_progress {
+        int progress_id PK
+        int user_id FK
+        int lesson_id FK
+        boolean completed
+        int watched_seconds
+        datetime completed_at
+        datetime updated_at
+    }
+
+note right of products
+  **CN1:** products → courses | ebooks (1:1)
+  → modules → lessons (mux_playback_id)
+end note
+
+note right of orders
+  **CN2:** giỏ → order → payment (VNPay)
+  → user_access; coupon; cart chặn trùng access
+  learning_progress: điều kiện hoàn tiền khóa học
+end note
+
+@enduml
