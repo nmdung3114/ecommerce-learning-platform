@@ -1,0 +1,23 @@
+BTL — Log kiểm tra tự động (cục bộ)
+Ngày: 2026-04-19
+
+1) Import backend (FastAPI app load)
+   Lệnh: cd backend && venv\Scripts\python.exe -c "from app.main import app; print('import_ok', len(app.routes))"
+   Kết quả: import_ok 111
+
+2) Ghi chú kiểm thử thủ công (Postman / trình duyệt) — cần chụp màn hình cho báo cáo
+   - Swagger: http://localhost:8000/docs (hoặc qua Docker: http://localhost/docs nếu cấu hình nginx)
+   - POST /api/auth/login → Bearer token
+   - POST /api/cart (user chưa sở hữu sản phẩm) vs thử lại sau khi có user_access → 409
+   - POST /api/orders với coupon hết hạn / hết lượt / subtotal < min → 400
+   - POST /api/payment/create/{order_id} → payment_url (có vnp_IpnUrl khi đặt VNPAY_IPN_URL trong .env)
+   - GET|POST /api/payment/vnpay-ipn — VNPay sandbox gọi khi cấu hình IPN URL công khai (ngrok)
+   - GET /api/payment/vnpay-return — luồng redirect sau thanh toán
+
+3) Repository
+   - GitHub: https://github.com/nmdung3114/ecommerce-learning-platform
+   - Nhánh develop đã đồng bộ remote (git push -u origin develop)
+
+4) SQL nộp kèm
+   - Schema đầy đủ: database/init.sql (cột user_access.accessed_at)
+   - Cập nhật DB cũ: alter.sql (ALTER user_access ADD accessed_at …)

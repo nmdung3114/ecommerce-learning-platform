@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     VNPAY_HASH_SECRET: str = ""
     VNPAY_URL: str = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
     VNPAY_RETURN_URL: str = "http://localhost/api/payment/vnpay-return"
+    # URL công khai (vd. ngrok) để VNPay gọi IPN server-to-server; để trống thì không gửi vnp_IpnUrl
+    VNPAY_IPN_URL: str = ""
 
     # PayPal Sandbox
     PAYPAL_CLIENT_ID: str = "ARoevRyCbe2QsWaAiz8Ld1ZkNVCgP8Yx5LzvRwfmXZjH1uHcpFyASAiRw_aiqxley4VJWjsKG62GpLLE"

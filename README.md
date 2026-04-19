@@ -100,6 +100,8 @@ Chỉnh sửa `backend/.env`:
 # VNPay Sandbox — đăng ký tại sandbox.vnpay.vn
 VNPAY_TMN_CODE=your-tmn-code
 VNPAY_HASH_SECRET=your-hash-secret
+# URL công khai (vd. https://xxx.ngrok-free.app/api/payment/vnpay-ipn) — đăng ký IPN trên cổng VNPay
+VNPAY_IPN_URL=
 
 # Mux — đăng ký tại dashboard.mux.com
 MUX_TOKEN_ID=your-token-id
@@ -122,7 +124,8 @@ MUX_SIGNING_PRIVATE_KEY=your-private-key
 | GET    | /api/cart                   | Xem giỏ hàng        |
 | POST   | /api/orders                 | Tạo đơn hàng        |
 | POST   | /api/payment/create/{id}   | Tạo VNPay URL       |
-| GET    | /api/payment/vnpay-return   | VNPay callback      |
+| GET    | /api/payment/vnpay-return   | VNPay return URL    |
+| GET/POST | /api/payment/vnpay-ipn    | VNPay IPN (server)  |
 | GET    | /api/learning/my-courses    | Khóa học của tôi    |
 | GET    | /api/learning/course/{id}   | Nội dung video      |
 | GET    | /api/admin/stats            | Thống kê admin      |
@@ -146,6 +149,12 @@ uvicorn app.main:app --reload --port 8000
 # Frontend — dùng Live Server hoặc bất kỳ HTTP server nào
 # Phải phục vụ từ root của frontend/ với /api proxy → localhost:8000
 ```
+
+---
+
+## GitHub & nhánh `develop`
+
+Remote mặc định: [github.com/nmdung3114/ecommerce-learning-platform](https://github.com/nmdung3114/ecommerce-learning-platform). Quy trình nhánh và PR: xem [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

@@ -104,6 +104,10 @@ def create_payment_url(
     if bank_code:
         params["vnp_BankCode"] = bank_code
 
+    ipn = (settings.VNPAY_IPN_URL or "").strip()
+    if ipn:
+        params["vnp_IpnUrl"] = ipn
+
     # Tính hash TRÊN CÙNG query string với URL (quote_plus values)
     query_string = _build_vnpay_query(params)
     secure_hash = _hmac_sha512(settings.VNPAY_HASH_SECRET, query_string)

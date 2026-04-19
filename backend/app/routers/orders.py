@@ -32,6 +32,23 @@ def _compute_discount(coupon: Coupon, subtotal: Decimal) -> Decimal:
     return min(coupon.discount, subtotal)
 
 
+def _assert_coupon_eligible(coupon: Coupon, subtotal: Decimal) -> Decimal:
+    """
+    Kiểm tra mã có thể áp dụng cho subtotal (hạn, lượt, đơn tối thiểu).
+    Trả về số tiền giảm; ném BadRequestException nếu không đủ điều kiện.
+    """
+    if not coupon.is_active:
+        raise BadRequestException("Mã giảm giá không hợp lệ")
+    if coupon.expired_date and coupon.expired_date < now_vn().replace(tzinfo=None):
+        raise BadRequestException("Mã giảm giá đã hết hạn")
+    if coupon.usage_limit and (coupon.used_count or 0) >= coupon.usage_limit:
+        raise BadRequestException("Mã giảm giá đã hết lượt sử dụng")
+    if coupon.min_order_amount and subtotal < coupon.min_order_amount:
+        raise BadRequestException(f"Đơn hàng tối thiểu {coupon.min_order_amount:,.0f}đ")
+    discount = _compute_discount(coupon, subtotal)
+    return discount
+
+
 @router.post("/validate-coupon", response_model=dict)
 def validate_coupon(
     data: CouponValidateRequest,
@@ -41,13 +58,7 @@ def validate_coupon(
     coupon = db.query(Coupon).filter(Coupon.code == data.code).first()
     if not coupon or not coupon.is_active:
         raise NotFoundException("Mã giảm giá không hợp lệ")
-    if coupon.expired_date and coupon.expired_date < now_vn().replace(tzinfo=None):
-        raise BadRequestException("Mã giảm giá đã hết hạn")
-    if coupon.usage_limit and coupon.used_count >= coupon.usage_limit:
-        raise BadRequestException("Mã giảm giá đã hết lượt sử dụng")
-    if coupon.min_order_amount and data.order_amount < coupon.min_order_amount:
-        raise BadRequestException(f"Đơn hàng tối thiểu {coupon.min_order_amount:,.0f}đ")
-    discount = _compute_discount(coupon, data.order_amount)
+    discount = _assert_coupon_eligible(coupon, data.order_amount)
     return {"valid": True, "discount": discount, "discount_type": coupon.discount_type}
 
 
@@ -70,15 +81,16 @@ def create_order(
 
     if data.coupon_code:
         coupon = db.query(Coupon).filter(Coupon.code == data.coupon_code).first()
-        if coupon:
-            discount = _compute_discount(coupon, subtotal)
-            coupon.used_count = (coupon.used_count or 0) + 1
+        if not coupon:
+            raise BadRequestException("Mã giảm giá không tồn tại")
+        discount = _assert_coupon_eligible(coupon, subtotal)
+        coupon.used_count = (coupon.used_count or 0) + 1
 
     total = max(subtotal - discount, Decimal("0"))
 
     order = Order(
         user_id=current_user.user_id,
-        coupon_code=data.coupon_code if coupon else None,
+        coupon_code=data.coupon_code if coupon is not None else None,
         subtotal=subtotal,
         discount_amount=discount,
         total_amount=total,

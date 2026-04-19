@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Request, Query
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy.orm import Session
 from typing import Optional
 import logging
@@ -117,6 +117,65 @@ def vnpay_return(request: Request, db: Session = Depends(get_db)):
             status_code=302,
         )
 
+
+def _vnpay_ipn_json(rsp_code: str, message: str) -> JSONResponse:
+    """VNPay IPN yêu cầu HTTP 200 + JSON RspCode/Message (tài liệu cổng 2.x)."""
+    return JSONResponse(
+        status_code=200,
+        content={"RspCode": rsp_code, "Message": message},
+    )
+
+
+@router.api_route("/vnpay-ipn", methods=["GET", "POST"])
+async def vnpay_ipn(request: Request, db: Session = Depends(get_db)):
+    """
+    IPN (Instant Payment Notification) — VNPay gọi server-to-server.
+    Xử lý idempotent qua process_vnpay_return (đơn đã paid → success, không cấp quyền trùng).
+    """
+    merged: dict[str, str] = {}
+    for key, value in request.query_params.multi_items():
+        merged[key] = value
+    if request.method == "POST":
+        try:
+            form = await request.form()
+            for key in form:
+                merged[str(key)] = str(form.get(key))
+        except Exception as e:
+            logger.warning("VNPay IPN: could not read form body: %s", e)
+
+    if not merged.get("vnp_SecureHash"):
+        return _vnpay_ipn_json("97", "Missing checksum")
+
+    result = process_vnpay_return(db, dict(merged))
+
+    if not result.get("success"):
+        msg = (result.get("message") or "")[:250]
+        if "Invalid signature" in msg:
+            return _vnpay_ipn_json("97", "Invalid checksum")
+        if msg in ("Order not found", "Payment record not found"):
+            return _vnpay_ipn_json("01", msg)
+        # Giao dịch không thành công (vnp_ResponseCode != 00) nhưng đã cập nhật DB — vẫn báo 00
+        return _vnpay_ipn_json("00", "Confirm Success")
+
+    order_id = int(result.get("order_id") or 0)
+    if result.get("message") == "Payment successful":
+        try:
+            from app.models.order import Order as OrderModel
+            from app.services.notification_service import notify_payment_success
+
+            order_obj = db.query(OrderModel).filter(OrderModel.order_id == order_id).first()
+            if order_obj:
+                notify_payment_success(
+                    db,
+                    order_id=order_id,
+                    user_id=order_obj.user_id,
+                    amount=float(order_obj.total_amount),
+                )
+                db.commit()
+        except Exception as e:
+            logger.warning("VNPay IPN: notification skipped: %s", e)
+
+    return _vnpay_ipn_json("00", "Confirm Success")
 
 
 @router.get("/status/{order_id}")

@@ -31,6 +31,15 @@ with open('/app/migration_output.txt', 'w') as log:
                 cur.execute("ALTER TABLE products ADD COLUMN rejection_reason TEXT DEFAULT NULL;")
                 conn.commit()
 
+            cur.execute("SHOW COLUMNS FROM user_access;")
+            cols_a = [r[0] for r in cur.fetchall()]
+            if 'accessed_at' not in cols_a:
+                log.write("Adding user_access.accessed_at...\n")
+                cur.execute(
+                    "ALTER TABLE user_access ADD COLUMN accessed_at DATETIME DEFAULT NULL AFTER granted_at;"
+                )
+                conn.commit()
+
             log.write("Database schema migration complete.\n")
 
     except Exception as e:

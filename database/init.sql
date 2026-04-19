@@ -200,6 +200,7 @@ CREATE TABLE IF NOT EXISTS user_access (
     product_id INT NOT NULL,
     order_id INT NOT NULL,
     granted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    accessed_at DATETIME DEFAULT NULL,
     revoked_at DATETIME,
     is_active BOOLEAN DEFAULT TRUE,
     UNIQUE KEY unique_access (user_id, product_id),
