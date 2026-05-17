@@ -100,19 +100,10 @@
               <option value="ebook">📖 Ebook</option>
             </select>
           </div>
-          <div class="form-group" id="level-group">
-            <label class="form-label">Cấp độ</label>
-            <select class="form-control" id="f-level">
-              <option value="">Chọn cấp độ</option>
-              <option value="Beginner">Beginner - Cơ bản</option>
-              <option value="Intermediate">Intermediate - Trung cấp</option>
-              <option value="Advanced">Advanced - Nâng cao</option>
-            </select>
+          <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Danh mục</label>
+            <select class="form-control" id="f-category"></select>
           </div>
-        </div>
-        <div class="form-group" style="margin-bottom:16px">
-          <label class="form-label">Danh mục</label>
-          <select class="form-control" id="f-category"></select>
         </div>
         <div class="form-group" style="margin-bottom:16px">
           <label class="form-label">URL Thumbnail</label>
@@ -129,14 +120,61 @@
           <label class="form-label">Mô tả đầy đủ</label>
           <textarea class="form-control" id="f-desc" rows="5" placeholder="Mô tả chi tiết về khóa học..."></textarea>
         </div>
-        <div class="form-group" style="margin-bottom:16px">
-          <label class="form-label">Bạn sẽ học được gì?</label>
-          <textarea class="form-control" id="f-learn" rows="3" placeholder="Mỗi điểm cách nhau bằng dấu xuống dòng..."></textarea>
+
+        <!-- Course-specific fields -->
+        <div id="course-fields">
+          <div style="margin:8px 0 16px;padding:12px;background:rgba(99,102,241,0.08);border-radius:8px;border:1px solid rgba(99,102,241,0.2)">
+            <div style="font-weight:600;margin-bottom:12px;color:var(--color-accent-light)">🎬 Thông tin khóa học</div>
+            <div class="form-row" style="margin-bottom:16px">
+              <div class="form-group" id="level-group">
+                <label class="form-label">Cấp độ</label>
+                <select class="form-control" id="f-level">
+                  <option value="">Chọn cấp độ</option>
+                  <option value="beginner">Beginner - Cơ bản</option>
+                  <option value="intermediate">Intermediate - Trung cấp</option>
+                  <option value="advanced">Advanced - Nâng cao</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Tổng thời lượng (phút)</label>
+                <input type="number" class="form-control" id="f-duration" min="0" value="0">
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:16px">
+              <label class="form-label">Bạn sẽ học được gì? (mỗi dòng một kỹ năng)</label>
+              <textarea class="form-control" id="f-learn" rows="3" placeholder="Mỗi điểm cách nhau bằng dấu xuống dòng..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Yêu cầu đầu vào (mỗi dòng một yêu cầu)</label>
+              <textarea class="form-control" id="f-requirements" rows="2" placeholder="VD: Biết HTML cơ bản..."></textarea>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Yêu cầu đầu vào</label>
-          <textarea class="form-control" id="f-requirements" rows="2" placeholder="VD: Biết HTML cơ bản..."></textarea>
+
+        <!-- Ebook-specific fields -->
+        <div id="ebook-fields" style="display:none">
+          <div style="margin:8px 0 16px;padding:12px;background:rgba(168,85,247,0.08);border-radius:8px;border:1px solid rgba(168,85,247,0.2)">
+            <div style="font-weight:600;margin-bottom:12px;color:#a855f7">📖 Thông tin Ebook</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+              <div class="form-group">
+                <label class="form-label">Định dạng</label>
+                <select class="form-control" id="f-ebook-format">
+                  <option value="pdf">PDF</option>
+                  <option value="epub">EPUB</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Số trang</label>
+                <input type="number" class="form-control" id="f-ebook-pages" min="0" value="0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dung lượng (MB)</label>
+                <input type="number" class="form-control" id="f-ebook-size" min="0" step="0.1" value="0">
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
 
