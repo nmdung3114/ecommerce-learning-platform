@@ -19,6 +19,9 @@ docker-compose up --build -d
 
 # 4. Chờ khoảng 30 giây rồi truy cập
 open http://localhost
+
+# 5. Khi muốn dừng hệ thống
+docker-compose down
 ```
 
 ---

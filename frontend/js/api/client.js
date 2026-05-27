@@ -1,7 +1,7 @@
 /**
  * HTTP API Client - fetch wrapper with JWT auth
  */
-const BASE_URL = '/api';
+const BASE_URL = 'http://localhost:8000/api';
 
 async function request(method, path, body = null, auth = false) {
   const headers = { 'Content-Type': 'application/json' };

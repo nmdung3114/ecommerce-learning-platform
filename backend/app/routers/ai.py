@@ -41,14 +41,21 @@ Phong cách: Ngắn gọn, rõ ràng, dùng emoji khi phù hợp để tạo c�
 
 
 def _gemini_chat(user_message: str, system_prompt: str) -> str:
-    """Gọi Gemini API thực sự."""
-    import google.generativeai as genai
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        system_instruction=system_prompt,
+    from google import genai
+
+    client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
+    full_prompt = f"""
+    {system_prompt}
+
+    User: {user_message}
+    """
+
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        contents=full_prompt,
     )
-    response = model.generate_content(user_message)
+
     return response.text
 
 
@@ -84,7 +91,7 @@ def ai_tutor_chat(
     Fallback sang rule-based nếu không có GEMINI_API_KEY.
     """
     system_prompt = _build_system_prompt(current_user.name, req.context)
-    model_used = "gemini-1.5-flash"
+    model_used = "gemini-2.0-flash"
 
     if settings.GEMINI_API_KEY:
         try:

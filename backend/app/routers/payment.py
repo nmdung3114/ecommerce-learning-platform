@@ -126,7 +126,7 @@ def _vnpay_ipn_json(rsp_code: str, message: str) -> JSONResponse:
     )
 
 
-@router.api_route("/vnpay-ipn", methods=["GET", "POST"])
+@router.api_route("/vnpay-ipn", methods=["GET", "POST"], include_in_schema=False)
 async def vnpay_ipn(request: Request, db: Session = Depends(get_db)):
     """
     IPN (Instant Payment Notification) — VNPay gọi server-to-server.
