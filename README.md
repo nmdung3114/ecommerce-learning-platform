@@ -1,171 +1,177 @@
-# ELearnVN — Hệ thống thương mại điện tử phân phối nội dung số
+# ELearnVN — Nền tảng phân phối khóa học trực tuyến & Ebook (.NET 8)
 
-Nền tảng phân phối khóa học trực tuyến và ebook với đầy đủ tính năng: xác thực JWT/OAuth, thanh toán VNPay, stream video qua Mux, và admin dashboard.
+Hệ thống thương mại điện tử phân phối nội dung số (khoá học trực tuyến, ebook) đầy đủ tính năng. Hệ thống đã được chuyển đổi hoàn toàn từ Python (FastAPI) sang **.NET 8 (ASP.NET Core Web API)** chất lượng cao, tích hợp Entity Framework Core, JWT, thanh toán VNPay, PayPal Sandbox, Mux Video Stream, AI Chatbot (Gemini) và trang quản trị Admin.
 
 ---
 
-##  Chạy nhanh với Docker
+## 🚀 Chạy nhanh với Docker
 
 ```bash
-# 1. Clone/mở project
+# 1. Di chuyển vào thư mục dự án
 cd ecommerce-learning-platform
 
-# 2. Cấu hình VNPay & Mux (tùy chọn cho test đầy đủ)
-# Mở backend/.env và điền API keys
-
-# 3. Khởi động toàn bộ hệ thống
+# 2. Khởi động toàn bộ hệ thống (MySQL, .NET 8 Backend, Nginx Frontend)
 cd docker
-docker-compose up --build -d
+docker compose up --build -d
 
-# 4. Chờ khoảng 30 giây rồi truy cập
-open http://localhost
+# 3. Chờ khoảng 30 giây để Database khởi tạo và seed dữ liệu, sau đó truy cập:
+# Frontend: http://localhost
+# Swagger API Docs: http://localhost/swagger (hoặc http://localhost:8000/swagger)
 
-# 5. Khi muốn dừng hệ thống
-docker-compose down
+# 4. Khi muốn dừng hệ thống:
+docker compose down
 ```
 
 ---
 
-##  Cấu trúc dự án
+## 📁 Cấu trúc dự án
 
 ```
 ecommerce-learning-platform/
-├── backend/              # FastAPI backend
-│   ├── app/
-│   │   ├── main.py       # FastAPI app entry point
-│   │   ├── config.py     # Pydantic settings
-│   │   ├── database.py   # SQLAlchemy setup
-│   │   ├── models/       # ORM models
-│   │   ├── schemas/      # Pydantic schemas
-│   │   ├── routers/      # API endpoints
-│   │   ├── services/     # Business logic
-│   │   └── core/         # Security, exceptions, middleware
-│   ├── init_data.py      # Seed data script (chạy auto khi startup)
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── .env              # Cấu hình API keys tại đây
-├── frontend/             # Vanilla JS SPA
-│   ├── public/           # HTML pages
-│   │   ├── index.html    # Homepage
-│   │   ├── auth/         # Login, Register
-│   │   ├── products/     # List, Detail
-│   │   ├── cart/         # Giỏ hàng
-│   │   ├── checkout/     # Thanh toán
-│   │   ├── orders/       # Đơn hàng
-│   │   ├── learning/     # Video player & Ebook
-│   │   ├── profile/      # Hồ sơ người dùng
-│   │   └── admin/        # Dashboard admin
-│   ├── css/              # Design system CSS
-│   └── js/               # JavaScript modules
-│       ├── app.js        # Global state & utilities
-│       ├── api/          # API client modules
-│       ├── components/   # header.js, footer.js
-│       └── pages/        # Page-specific scripts
+├── backend-dotnet/           # ASP.NET Core 8 Web API
+│   ├── Controllers/          # API Controllers (Auth, Products, Cart, Orders, Admin, etc.)
+│   ├── Data/                 # AppDbContext & DbInitializer (tự động seed dữ liệu mẫu)
+│   ├── Models/               # Entity Models ánh xạ trực tiếp MySQL
+│   ├── Services/             # Logic nghiệp vụ (VNPay, PayPal, Mux, Gemini, Notification, etc.)
+│   ├── Uploads/              # Lưu trữ static files (avatar, ebook, thumbnail...)
+│   ├── appsettings.json      # Cấu hình Database, JWT, VNPay, PayPal, Mux, Gemini
+│   ├── ELearnVN.Backend.csproj
+│   ├── Program.cs            # Đăng ký DI Services, Middleware, CORS, Authentication
+│   └── Dockerfile            # Multi-stage Docker build cho .NET 8
+├── frontend/                 # Vanilla JS Single Page Application (SPA)
+│   ├── public/               # Giao diện HTML
+│   │   ├── index.html        # Trang chủ
+│   │   ├── auth/             # Đăng ký, đăng nhập
+│   │   ├── products/         # Danh sách, chi tiết khoá học & ebook
+│   │   ├── cart/             # Giỏ hàng
+│   │   ├── checkout/         # Thanh toán đơn hàng
+│   │   ├── orders/           # Danh sách đơn hàng & hoàn tiền
+│   │   ├── learning/         # Trình phát video & Đọc Ebook bảo mật
+│   │   ├── profile/          # Thông tin cá nhân & ứng tuyển giảng viên
+│   │   └── admin/            # Dashboard quản trị & duyệt khoá học
+│   ├── css/                  # Vanilla CSS Design System
+│   └── js/                   # Modules JS xử lý logic client
 ├── database/
-│   ├── init.sql          # Schema SQL
-│   └── seed.sql          # (seed handled by init_data.py)
+│   └── init.sql              # Schema cơ sở dữ liệu MySQL ban đầu
 ├── docker/
-│   └── docker-compose.yml
-└── nginx.conf            # Reverse proxy config
+│   └── docker-compose.yml    # Orchestration file chạy cả hệ thống
+└── nginx.conf                # Nginx proxy định tuyến frontend và backend (/api)
 ```
 
 ---
 
-##  Tài khoản test mặc định
+## 🔑 Tài khoản thử nghiệm mặc định
 
-| Role   | Email                   | Mật khẩu   |
-|--------|-------------------------|------------|
-| Admin  | admin@elearning.vn      | admin123   |
-| Author | author@elearning.vn     | author123  |
-| User   | user@elearning.vn       | user123    |
+Sau khi khởi động, cơ sở dữ liệu sẽ tự động được tạo và seed sẵn 3 tài khoản demo sau:
 
-**Mã giảm giá test:** `WELCOME50` · `SALE20` · `NEWUSER`
+| Vai trò | Email | Mật khẩu |
+| :--- | :--- | :--- |
+| **Admin** | `admin@elearning.vn` | `admin123` |
+| **Author (Giảng viên)** | `author@elearning.vn` | `author123` |
+| **Learner (Học viên)** | `user@elearning.vn` | `user123` |
 
----
-
-##  VNPay Sandbox — Thẻ test
-
-| Trường     | Giá trị             |
-|------------|---------------------|
-| Bank       | NCB                 |
-| Số thẻ     | 9704198526191432198 |
-| Tên chủ thẻ| NGUYEN VAN A        |
-| Ngày hết   | 07/15               |
-| OTP        | 123456              |
+* **Mã giảm giá thử nghiệm:** `WELCOME50` (Giảm 50K cho đơn từ 200K) · `SALE20` (Giảm 20% cho đơn từ 500K) · `NEWUSER` (Giảm 100K cho đơn từ 300K).
 
 ---
 
-##  Cấu hình thực tế (VNPay + Mux)
+## 💳 VNPay Sandbox — Thông tin thẻ test
 
-Chỉnh sửa `backend/.env`:
+Khi chọn thanh toán qua cổng VNPay, bạn sử dụng thông tin thẻ bên dưới của ngân hàng NCB Sandbox:
 
-```env
-# VNPay Sandbox — đăng ký tại sandbox.vnpay.vn
-VNPAY_TMN_CODE=your-tmn-code
-VNPAY_HASH_SECRET=your-hash-secret
-# URL công khai (vd. https://xxx.ngrok-free.app/api/payment/vnpay-ipn) — đăng ký IPN trên cổng VNPay
-VNPAY_IPN_URL=
+| Trường | Giá trị |
+| :--- | :--- |
+| **Ngân hàng** | NCB |
+| **Số thẻ** | `9704198526191432198` |
+| **Tên chủ thẻ** | NGUYEN VAN A |
+| **Ngày phát hành** | `07/15` |
+| **Mật khẩu OTP** | `123456` |
 
-# Mux — đăng ký tại dashboard.mux.com
-MUX_TOKEN_ID=your-token-id
-MUX_TOKEN_SECRET=your-token-secret
-MUX_SIGNING_KEY_ID=your-signing-key-id
-MUX_SIGNING_PRIVATE_KEY=your-private-key
+---
+
+## ⚙️ Cấu hình API thực tế (VNPay + PayPal + Mux + Gemini)
+
+Nếu chạy bằng Docker, bạn cấu hình trực tiếp qua các biến môi trường trong [docker-compose.yml](file:///d:/ecommerce-learning-platform/docker/docker-compose.yml). Nếu chạy local (không Docker), bạn cấu hình các khoá bí mật trong [appsettings.json](file:///d:/ecommerce-learning-platform/backend-dotnet/appsettings.json):
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "server=localhost;port=3306;database=elearning;user=root;password=root123"
+  },
+  "Jwt": {
+    "Secret": "jwt-secret-change-me-thirty-two-characters-long",
+    "ExpiryMinutes": 1440
+  },
+  "VnPay": {
+    "TmnCode": "YOUR_VNPAY_TMN_CODE",
+    "HashSecret": "YOUR_VNPAY_HASH_SECRET",
+    "Url": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
+    "ReturnUrl": "http://localhost/api/payment/vnpay-return"
+  },
+  "PayPal": {
+    "ClientId": "YOUR_PAYPAL_CLIENT_ID",
+    "ClientSecret": "YOUR_PAYPAL_CLIENT_SECRET",
+    "BaseUrl": "https://api-m.sandbox.paypal.com",
+    "ReturnUrl": "http://localhost/api/payment/paypal-return"
+  },
+  "Mux": {
+    "TokenId": "YOUR_MUX_TOKEN_ID",
+    "TokenSecret": "YOUR_MUX_TOKEN_SECRET",
+    "SigningKeyId": "YOUR_MUX_SIGNING_KEY_ID",
+    "SigningPrivateKey": "YOUR_MUX_SIGNING_PRIVATE_KEY_BASE64"
+  },
+  "Gemini": {
+    "ApiKey": "YOUR_GEMINI_API_KEY"
+  }
+}
 ```
 
 ---
 
-##  API Endpoints chính
+## 🌐 API Endpoints chính
 
-| Method | Endpoint                    | Mô tả               |
-|--------|-----------------------------|---------------------|
-| POST   | /api/auth/register          | Đăng ký             |
-| POST   | /api/auth/login             | Đăng nhập           |
-| POST   | /api/auth/oauth/callback    | OAuth (mock)        |
-| GET    | /api/products               | Danh sách sản phẩm  |
-| GET    | /api/products/{id}          | Chi tiết sản phẩm   |
-| GET    | /api/cart                   | Xem giỏ hàng        |
-| POST   | /api/orders                 | Tạo đơn hàng        |
-| POST   | /api/payment/create/{id}   | Tạo VNPay URL       |
-| GET    | /api/payment/vnpay-return   | VNPay return URL    |
-| GET/POST | /api/payment/vnpay-ipn    | VNPay IPN (server)  |
-| GET    | /api/learning/my-courses    | Khóa học của tôi    |
-| GET    | /api/learning/course/{id}   | Nội dung video      |
-| GET    | /api/admin/stats            | Thống kê admin      |
-| GET    | /api/docs                   | Swagger UI          |
-
----
-
-##  Phát triển local (không Docker)
-
-```bash
-# Backend
-cd backend
-python -m venv venv
-venv\Scripts\activate      # Windows
-pip install -r requirements.txt
-
-# Chỉnh DATABASE_URL trong .env trỏ đến MySQL local
-python init_data.py        # Tạo bảng + seed data
-uvicorn app.main:app --reload --port 8000
-
-# Frontend — dùng Live Server hoặc bất kỳ HTTP server nào
-# Phải phục vụ từ root của frontend/ với /api proxy → localhost:8000
-```
+| Phương thức | Endpoint | Mô tả |
+| :--- | :--- | :--- |
+| **POST** | `/api/auth/register` | Đăng ký tài khoản mới |
+| **POST** | `/api/auth/login` | Đăng nhập hệ thống (trả về JWT Token) |
+| **POST** | `/api/auth/google` | Đăng nhập thông qua Google OAuth ID Token |
+| **GET** | `/api/products` | Lấy danh sách sản phẩm (lọc theo loại, danh mục, giá, level) |
+| **GET** | `/api/products/{id}` | Chi tiết khoá học/ebook kèm danh sách bài học và đánh giá |
+| **POST** | `/api/products/{id}/reviews` | Học viên viết đánh giá sản phẩm sau khi mua thành công |
+| **GET** | `/api/cart` | Lấy các sản phẩm trong giỏ hàng hiện tại |
+| **POST** | `/api/orders` | Đặt hàng và áp dụng coupon giảm giá |
+| **POST** | `/api/payment/create` | Tạo phiên thanh toán (trả về URL VNPay hoặc PayPal Sandbox) |
+| **GET** | `/api/payment/vnpay-return` | Callback tiếp nhận kết quả thanh toán từ VNPay |
+| **POST** | `/api/payment/paypal-return` | Xác thực và capture giao dịch thành công từ PayPal |
+| **GET** | `/api/learning/my-courses` | Khoá học đã sở hữu của học viên |
+| **GET** | `/api/learning/lessons/{id}` | Lấy bài học (gồm ký JWT token xem video private trên Mux) |
+| **GET** | `/api/learning/ebook/{id}` | Tải file PDF ebook thông qua token ký tạm thời 1 giờ |
+| **POST** | `/api/learning/progress` | Lưu tiến trình bài học (hoàn thành 100% để đủ điều kiện cấp chứng nhận) |
+| **GET** | `/api/certificates/{id}` | Xuất chứng chỉ hoàn thành khoá học dạng file vector SVG sắc nét |
+| **GET** | `/api/admin/stats` | Biểu đồ doanh thu admin theo ngày/tuần/tháng/năm |
+| **GET** | `/swagger` | Tài liệu tương tác API Swagger UI |
 
 ---
 
-## GitHub & nhánh `develop`
+## 🛠️ Phát triển Local (Không dùng Docker)
 
-- **Monorepo đầy đủ:** [ecommerce-learning-platform](https://github.com/nmdung3114/ecommerce-learning-platform)
-- **Nộp bài BTL / Backend nhóm:** [Nhom6-3-TMDT-Backend](https://github.com/nmdung3114/Nhom6-3-TMDT-Backend) — nhánh `main`, `develop`, `feature/chức-năng-1`, `feature/chức-năng-2` (chi tiết: [NHOM6_GITHUB.md](NHOM6_GITHUB.md))
+### 1. Chuẩn bị Cơ sở dữ liệu
+* Cài đặt **MySQL Server** trên máy local của bạn.
+* Chạy các câu lệnh trong file [init.sql](file:///d:/ecommerce-learning-platform/database/init.sql) để tạo cấu trúc cơ sở dữ liệu `elearning`.
 
-Quy trình nhánh và PR: [CONTRIBUTING.md](CONTRIBUTING.md).
+### 2. Cài đặt và chạy Backend .NET 8
+* Yêu cầu cài đặt **SDK .NET 8.0** trên hệ điều hành.
+* Di chuyển vào thư mục backend:
+  ```bash
+  cd backend-dotnet
+  ```
+* Chỉnh sửa cấu hình chuỗi kết nối MySQL tại `"DefaultConnection"` trong [appsettings.json](file:///d:/ecommerce-learning-platform/backend-dotnet/appsettings.json) trỏ đến MySQL local của bạn.
+* Build và khởi chạy dự án (hệ thống sẽ tự động tạo Schema và seed dữ liệu mẫu trong lần chạy đầu tiên):
+  ```bash
+  dotnet run
+  ```
+  Ứng dụng backend sẽ chạy tại: `http://localhost:8000`
 
----
-
-## Lưu ý
-
-- **Video Mux**: Upload video lên Mux Dashboard → lấy `playback_id` → cập nhật vào bảng `lessons` qua Admin API hoặc trực tiếp database
-- **Signed URLs**: Mux signed URLs yêu cầu `MUX_SIGNING_KEY_ID` và `MUX_SIGNING_PRIVATE_KEY` hợp lệ
-- **Production**: Thay `SECRET_KEY` trong `.env` bằng key ngẫu nhiên dài ít nhất 32 ký tự
+### 3. Khởi chạy Frontend
+* Bạn có thể sử dụng bất kỳ HTTP Server đơn giản nào (ví dụ: Live Server trong VS Code, `http-server` của Node.js, hoặc Nginx local).
+* Đảm bảo frontend được host tại root của thư mục `frontend/`.
+* Các request tới `/api/*` phải được định tuyến (proxy) hoặc gọi trực tiếp về cổng backend `http://localhost:8000/api/*`.

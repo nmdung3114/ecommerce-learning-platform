@@ -25,27 +25,41 @@ services:
 
   backend:
     build:
-      context: ../backend
+      context: ../backend-dotnet
       dockerfile: Dockerfile
     container_name: elearning_backend
     restart: unless-stopped
-    env_file:
-      - ../backend/.env
     environment:
-      DATABASE_URL: mysql+pymysql://elearning:elearning123@mysql:3306/elearning
-      DB_HOST: mysql
+      ConnectionStrings__DefaultConnection: "server=mysql;port=3306;database=elearning;user=elearning;password=elearning123;CharSet=utf8mb4"
+      Jwt__Secret: "jwt-secret-change-me-thirty-two-characters-long"
+      Jwt__ExpiryMinutes: "1440"
+      VnPay__TmnCode: ""
+      VnPay__HashSecret: ""
+      VnPay__Url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+      VnPay__ReturnUrl: "http://localhost/api/payment/vnpay-return"
+      VnPay__IpnUrl: ""
+      PayPal__ClientId: "ARoevRyCbe2QsWaAiz8Ld1ZkNVCgP8Yx5LzvRwfmXZjH1uHcpFyASAiRw_aiqxley4VJWjsKG62GpLLE"
+      PayPal__ClientSecret: "ENsq-AKEERyTzga8Oo5kzmPNi313YuYmml9GqrkAuxAWGUkvQcZHp_PdJmoToEZvZN1mBlNbSQc_U0T5"
+      PayPal__BaseUrl: "https://api-m.sandbox.paypal.com"
+      PayPal__ReturnUrl: "http://localhost/api/payment/paypal-return"
+      PayPal__CancelUrl: "http://localhost/checkout/index.html"
+      PayPal__VndRate: "26000.0"
+      Mux__TokenId: ""
+      Mux__TokenSecret: ""
+      Mux__SigningKeyId: ""
+      Mux__SigningPrivateKey: ""
+      Gemini__ApiKey: ""
+      Cors__Origins: "http://localhost,http://localhost:80,http://127.0.0.1"
+      Uploads__UploadDir: "uploads"
     ports:
       - "8000:8000"
     volumes:
-      - ../backend:/app
       - uploads_data:/app/uploads
     depends_on:
       mysql:
         condition: service_healthy
     networks:
       - elearning_net
-    command: >
-      sh -c "python init_data.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
 
   nginx:
     image: nginx:alpine
